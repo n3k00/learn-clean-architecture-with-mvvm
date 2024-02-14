@@ -1,4 +1,5 @@
 import 'package:complete_advanced_flutter/app/di.dart';
+import 'package:complete_advanced_flutter/presentation/common/state_renderer/state_render_impl.dart';
 import 'package:complete_advanced_flutter/presentation/login/login_viewmodel.dart';
 import 'package:complete_advanced_flutter/presentation/resources/assets_manager.dart';
 import 'package:complete_advanced_flutter/presentation/resources/color_manager.dart';
@@ -6,6 +7,7 @@ import 'package:complete_advanced_flutter/presentation/resources/routes_manager.
 import 'package:complete_advanced_flutter/presentation/resources/strings_manager.dart';
 import 'package:complete_advanced_flutter/presentation/resources/values_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginView extends StatefulWidget {
@@ -27,6 +29,12 @@ class _LoginViewState extends State<LoginView> {
         () => _loginViewModel.setUserName(_userNameController.text));
     _passwordController.addListener(
         () => _loginViewModel.setPassword(_passwordController.text));
+    _loginViewModel.isUserLoggedInSuccessfullyStreamController.stream
+        .listen((isSuccessLoggedIn) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacementNamed(Routes.mainRoute);
+      });
+    });
   }
 
   @override
@@ -43,7 +51,18 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    return _getContentWidget();
+    return Scaffold(
+      body: StreamBuilder<FlowState>(
+        stream: _loginViewModel.outputState,
+        builder: (context, snapshot) {
+          return snapshot.data?.getScreenWidget(context, _getContentWidget(),
+                  () {
+                _loginViewModel.login();
+              }) ??
+              _getContentWidget();
+        },
+      ),
+    );
   }
 
   Widget _getContentWidget() {
@@ -127,7 +146,11 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.all(AppPadding.p8),
+                  padding: EdgeInsets.only(
+                    top: AppPadding.p8,
+                    left: AppPadding.p28,
+                    right: AppPadding.p28,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

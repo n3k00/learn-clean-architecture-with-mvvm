@@ -44,7 +44,7 @@ Future<void> initAppModule() async {
 }
 
 initLoginModule() {
-  if (GetIt.I.isRegistered<LoginUseCase>()) {
+  if (!GetIt.I.isRegistered<LoginUseCase>()) {
     instance
         .registerLazySingleton<LoginUseCase>(() => LoginUseCase(instance()));
     instance.registerLazySingleton<LoginViewModel>(

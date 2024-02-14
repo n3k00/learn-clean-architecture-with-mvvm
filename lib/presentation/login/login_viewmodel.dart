@@ -3,16 +3,22 @@ import 'dart:async';
 import 'package:complete_advanced_flutter/domain/usecase/login_usecase.dart';
 import 'package:complete_advanced_flutter/presentation/base/base_view_model.dart';
 import 'package:complete_advanced_flutter/presentation/common/freezed_data_classes.dart';
+import 'package:complete_advanced_flutter/presentation/common/state_renderer/state_render_impl.dart';
+import 'package:complete_advanced_flutter/presentation/common/state_renderer/state_renderer.dart';
+import 'package:dartz/dartz.dart';
 
 class LoginViewModel extends BaseViewModel
     implements LoginViewModelInputs, LoginViewModelOutput {
-  StreamController _userNameStreamController =
+  late final StreamController<String> _userNameStreamController =
       StreamController<String>.broadcast();
-  StreamController _passwordStreamController =
+  late final StreamController<String> _passwordStreamController =
       StreamController<String>.broadcast();
 
-  StreamController _isAllInputsValidateStreamController =
+  late final StreamController<void> _isAllInputsValidateStreamController =
       StreamController<void>.broadcast();
+
+  late final StreamController<bool> isUserLoggedInSuccessfullyStreamController =
+      StreamController<bool>();
 
   var loginObject = LoginObject("", "");
 
@@ -24,11 +30,12 @@ class LoginViewModel extends BaseViewModel
     _userNameStreamController.close();
     _passwordStreamController.close();
     _isAllInputsValidateStreamController.close();
+    isUserLoggedInSuccessfullyStreamController.close();
   }
 
   @override
   void start() {
-    // TODO: implement start
+    inputState.add(ContentState());
   }
 
   @override
@@ -43,12 +50,21 @@ class LoginViewModel extends BaseViewModel
 
   @override
   login() async {
+    inputState.add(
+        LoadingState(stateRendererType: StateRendererType.POPUP_LOADING_STATE));
     (await _loginUseCase!.execute(
             LoginUseCaseInput(loginObject.userName, loginObject.password)))
         .fold((failure) {
       print(failure.message);
+      // left -> failure
+      inputState.add(
+          ErrorState(StateRendererType.POPUP_ERROR_STATE, failure.message));
     }, (data) {
-      print(data.customer?.name);
+      // right -> success (data)
+      inputState.add(ContentState());
+
+      // navigate to main screen after the login
+      isUserLoggedInSuccessfullyStreamController.add(true);
     });
   }
 

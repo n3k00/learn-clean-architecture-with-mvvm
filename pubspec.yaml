@@ -49,6 +49,7 @@ dependencies:
   device_info_plus: ^9.1.2
   freezed: ^2.4.7
   get_it: ^7.6.7
+  lottie: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -84,6 +85,7 @@ flutter:
   assets:
     - assets/images/splash_logo.png
     - assets/images/
+    - assets/json/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
